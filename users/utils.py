@@ -3,7 +3,7 @@ import jwt
 from django.conf import settings
 from django.http import JsonResponse
 
-from my_settings import ALGORITHM
+from env import ALGORITHM
 from .models import User
 
 def login_decorator(func):
