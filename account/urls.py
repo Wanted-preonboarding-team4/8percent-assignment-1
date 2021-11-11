@@ -1,6 +1,6 @@
 from django.urls import path
-# from users.views import SignUpView, LoginView
+from account.views import AccountView
 
 urlpatterns = [
-
+    path('', AccountView.as_view())
 ]
