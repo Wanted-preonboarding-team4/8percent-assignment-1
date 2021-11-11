@@ -1,5 +1,6 @@
 import json, jwt
 
+import bcrypt
 from django.test import TestCase, Client, client
 
 from users.models import User
@@ -90,85 +91,98 @@ class PostTest(TestCase):
         self.assertEqual(response.json(), {
             "MESSAGE": "KEY_ERROR"
         })
+
+
 class PostingViewTest(TestCase):
     def setUp(self):
-        user_info = User.objects.create(
-            name = "강대훈",
-            email="foreat13@gmail.com",
-            password="temp123456"
-        )
+        User.objects.bulk_create([
+            User(
+                id=1,
+                name="강대훈",
+                email="foreat13@gmail.com",
+                password="temp123456"
+            ),
 
-        Account.objects.create(
-            name="강대훈",
-            account_number="620-217259-361",
-            password=8647,
-            balance=0,
-            user=user_info
+            User(
+                id=2,
+                name="대훈강",
+                email="foreat12@gmail.com",
+                password="rkdeognsWKd123"
             )
+        ])
+
+        bcrypt.hashpw("8647".encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+        Account.objects.bulk_create([
+            Account(
+                id=1,
+                name="강대훈",
+                account_number="620-217259-361",
+                password=bcrypt.hashpw("8647".encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
+                balance=0,
+                user_id=1
+            ),
+            Account(
+                id=2,
+                name="대훈강",
+                account_number="620-217259-362",
+                password=bcrypt.hashpw("8646".encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
+                balance=0,
+                user_id=2
+            ),
+        ]
+        )
+        self.token1 = jwt.encode({'id': User.objects.get(id=1).id}, SECRET_KEY, ALGORITHM)
 
     def test_deposit_post_success(self):
         client = Client()
-        body ={
-        "name": "강대훈",
-        "account_number" : "620-217259-361",
-        "password" : "8647",
-        "amount" :5000,
-        "user":{
+        headers = {'HTTP_Authorization': self.token1}
+        body = {
             "name": "강대훈",
-            "email":"foreat13@gmail.com",
-            "password":"temp123456"
+            "account_id": 1,
+            "password": "8647",
+            "amount": 5000,
         }
-}
-        response = client.post('/account/deposit', json.dumps(body), content_type='application/json')
+        response = client.post('/account/deposit', json.dumps(body), content_type='application/json',  **headers)
         self.assertEqual(response.status_code, 200)
 
     def test_deposit_post_not_match_account(self):
         client = Client()
+        headers = {'HTTP_Authorization': self.token1}
         body = {
-        "name": "강대훈",
-        "account_number" : "620-217259-362",
-        "password" : "8647",
-        "amount" :5000,
-        "user":{
             "name": "강대훈",
-            "email":"foreat13@gmail.com",
-            "password":"temp123456"
+            "account_id": 1,
+            "password": "8647",
+            "amount": 5000,
         }
-}
-        response = client.post('/account/deposit', json.dumps(body), content_type='application/json')
+        response = client.post('/account/deposit', json.dumps(body), content_type='application/json', **headers)
         self.assertEqual(response.status_code, 200)
 
     def test_deposit_post_not_match_user(self):
         client = Client()
+        headers = {'HTTP_Authorization': self.token1}
         body = {
-        "name": "강대훈",
-        "account_number" : "620-217259-361",
-        "password" : "8647",
-        "amount" :5000,
-        "user":{
             "name": "강대훈",
-            "email":"foreat16@gmail.com",
-            "password":"temp123456"
+            "account_id": 2,
+            "password": "8647",
+            "amount": 5000,
         }
-}
-        response = client.post('/account/deposit', json.dumps(body), content_type='application/json')
+        response = client.post('/account/deposit', json.dumps(body), content_type='application/json', **headers)
+
         self.assertEqual(response.status_code, 404)
 
     def test_deposit_post_fail_not_match_password(self):
         client = Client()
+        headers = {'HTTP_Authorization': self.token1}
         body = {
-        "name": "강대훈",
-        "account_number" : "620-217259-361",
-        "password" : "8646",
-        "amount" :0,
-        "user":{
             "name": "강대훈",
-            "email":"foreat13@gmail.com",
-            "password":"temp123456"
+            "account_id": 1,
+            "password": "8646",
+            "amount": 0,
         }
-}
-        response = client.post('/account/deposit', json.dumps(body), content_type='application/json')
+        response = client.post('/account/deposit', json.dumps(body), content_type='application/json', **headers)
         self.assertEqual(response.status_code, 404)
 
     def tearDown(self):
         Account.objects.all().delete()
+
