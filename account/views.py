@@ -1,17 +1,73 @@
 import json, bcrypt, random, re
+from datetime              import date, datetime, timedelta
 
-from django.http import JsonResponse
-from django.views import View
-from django.db import transaction
+from django.core           import paginator
+from django.http           import JsonResponse
+from django.shortcuts      import render
+from django.views          import View
+from django.db             import transaction
+from django.db.models      import Q
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-from users.models import User
-from account.models import Account, Transaction, TransactionType
-from users.utils import login_decorator
-from django.http import JsonResponse
-from django.views import View
-from account.models import Account, Transaction
-from users.utils import login_decorator
 
+from users.utils           import login_decorator
+from account.filtering     import check_filter
+from users.models          import User
+from account.models        import Account, Transaction, TransactionType
+
+
+class TransationView(View):
+    @login_decorator
+    def get(self, request, account_id):
+        user_id = request.user.id
+        page = request.GET.get('page', 1)
+        start_date  = request.GET.get('startPeriod', '')
+        end_date  = request.GET.get('endPeriod', '')
+        search_by_ordering = request.GET.get('order-by', '')
+        search_by_tansaction_type = request.GET.get('transaction_type', '')
+        
+
+        start_date, end_date, search_by_ordering, search_by_tansaction_type = check_filter(
+            start_date, 
+            end_date, 
+            search_by_ordering, 
+            search_by_tansaction_type
+        )
+        
+        if not Account.objects.filter(id = account_id).exists():
+            return JsonResponse({"Message": "Account Does Not Exist"}, status=404)
+        
+        account = Account.objects.filter(id = account_id)
+
+        if account.user_id != user_id:
+            return JsonResponse({"Message": "Not Authorized"}, status=403)
+
+        transactions = Transaction.select_related('user', 'account', 'transactiontype').filter(
+            account_id = account_id,
+            created_at__range=(start_date, end_date),
+            transaction_type_id = search_by_tansaction_type
+        ).order_by(search_by_ordering)
+
+        paginator = Paginator.page(transactions, 5)
+        
+        try:
+            transaction_list = paginator.page(page)
+        except PageNotAnInteger:
+            transaction_list = paginator.page(1)
+        except EmptyPage:
+            transaction_list = paginator.page(paginator.num_pages)
+        
+        result = [{
+            "transaction_date": transaction.created_at.strftime(r"%Y.%m.%d.%m.%s"),
+            "amount": transaction.ammount,
+            "balance": transaction.balance,
+            "transaction_type": transaction.transaction_type.type,
+            "description": transaction.description,
+            "transaction_counterparty": transaction.account.account_number[:5] + (transaction.account.account_number[5:]) * '*' 
+        }for transaction in transaction_list]
+
+        return JsonResponse({"Result": result}, status=200)
+        
 
 class AccountView(View):
     @login_decorator
@@ -45,6 +101,7 @@ class AccountView(View):
             return JsonResponse({"MESSAGE": "SUCCESS"}, status=201)
         except KeyError:
             return JsonResponse({"MESSAGE": "KEY_ERROR"}, status=400)
+        
 
 
 class DepositView(View):
