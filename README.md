@@ -160,11 +160,22 @@ Tool : <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&log
 ### 입금 API
 **endpoint** : `/account/deposit`
 
+- ```Body Message```
+```
+- JSON
+{
+    'name': '강대훈',
+    'account_id': 1,
+    'password': '8647',
+    'amount': 5000,
+    'user_id': 2
+}
+```
 - ```입금 성공시``` : status 200,
 ```
 - JSON
 {
-    'message': '입금 성공'
+    'MESSAGE': '입금 성공'
 }
 ``` 
 
@@ -172,7 +183,7 @@ Tool : <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&log
 ``` 
 - JSON
 {
-    'message': '일치하는 계좌가 없습니다.'
+    'MESSAGE': '일치하는 계좌가 없습니다.'
 }
 ```
 
@@ -180,7 +191,7 @@ Tool : <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&log
 ``` 
 - JSON
 {
-    'message': '본인의 계좌가 아닙니다.'
+    'MESSAGE': '본인의 계좌가 아닙니다.'
 }
 ```
 
@@ -188,24 +199,36 @@ Tool : <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&log
 ``` 
 - JSON
 {
-    'message': '비밀번호가 틀렸습니다.'
+    'MESSAGE': '비밀번호가 틀렸습니다.'
 }
 ```
 
 ### 출금 API
 **endpoint** : `/account/withdraw`
+- ```Body Message```
+```
+- JSON
+{
+    'name': '강대훈',
+    'account_id': 1,
+    'password': '8647',
+    'amount': 5000,
+    'user_id': 2
+}
+```
+
 - ```출금 성공시``` : status 200,
 ``` 
 - JSON
 {
-    'message': '출금 성공'
+    'MESSAGE': '출금 성공'
 }
 ```
 - ```일치하는 계좌가 없을 때``` : status 404, 
 ``` 
 - JSON
 {
-    'message': '일치하는 계좌가 없습니다.'
+    'MESSAGE': '일치하는 계좌가 없습니다.'
 }
 ```
 
@@ -213,7 +236,7 @@ Tool : <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&log
 ``` 
 - JSON
 {
-    'message': '본인의 계좌가 아닙니다.'
+    'MESSAGE': '본인의 계좌가 아닙니다.'
 }
 ```
 
@@ -221,14 +244,14 @@ Tool : <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&log
 ``` 
 - JSON
 {
-    'message': '비밀번호가 틀렸습니다.'
+    'MESSAGE': '비밀번호가 틀렸습니다.'
 }
 ```
 - ```출금액이 부족할 때``` : status 404, 
 ``` 
 - JSON
 {
-    'message': '금액이 부족합니다.'
+    'MESSAGE': '금액이 부족합니다.'
 }
 ```
 
@@ -299,21 +322,21 @@ Tool : <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&log
 - ```내 계좌가 아닐 시``` : status 403,
 ``` 
 {
-  "Message": "Not Authorized"
+  "MESSAGE": "Not Authorized"
 }
 ```
 
 - ```계좌가 없을 시(account_id가 존재하지 않을 시)``` : status 404,
 ``` 
 {
-  "Message": "Account Does Not Exist"
+  "MESSAGE": "Account Does Not Exist"
 }
 ```
 
 - ```입출금 필터링 규칙에 어긋날 시(1, 2, all인 경우 외)``` : status 404,
 ``` 
 {
-  "Message": "Invalid Transaction Format"
+  "MESSAGE": "Invalid Transaction Format"
 }
 
 ```
