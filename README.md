@@ -124,6 +124,7 @@ Tool : <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&log
   - `./__init__.py`
   - `./admin.py`
   - `./apps.py`
+  - `./filtering.py`
   - `./models.py`
   - `./tests.py`
   - `./urls.py`
@@ -139,22 +140,26 @@ Tool : <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&log
 ## 구현기능  
 
 ### 계좌 생성
-- ```계좌생성 성공시``` :
+- ```계좌생성 성공시``` : status_code : 200
 
 ```
 - JSON
 {
     "MESSAGE": "SUCCESS",
 }
-
-- 성공 메시지
-- status_code : 200
 ```
 
-- ```계좌생성 실패시``` :
+- ```계좌생성 실패시``` : 
+1. 비밀번호가 숫자 4자리 아닐시 status_code : 400, 
+2. 키에러가 발생했을시 status_code : 400
 ```
+- JSON
 {
+    "MESSAGE":"숫자 4자리를 입력해주세요.",
+    "MESSAGE": "KEY_ERROR"
+    
 }
+
 ``` 
 
 ### 입금 API
