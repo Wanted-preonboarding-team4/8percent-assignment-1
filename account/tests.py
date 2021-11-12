@@ -115,7 +115,7 @@ class DepositViewTest(TestCase):
             Account(
                 id=1,
                 name="강대훈",
-                account_number="620-217259-361",
+                account_number="1234567",
                 password=bcrypt.hashpw("8647".encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
                 balance=0,
                 user_id=1
@@ -123,13 +123,25 @@ class DepositViewTest(TestCase):
             Account(
                 id=2,
                 name="대훈강",
-                account_number="620-217259-362",
+                account_number="12435622",
                 password=bcrypt.hashpw("8646".encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
                 balance=0,
                 user_id=2
             ),
         ]
         )
+
+        TransactionType.objects.bulk_create([
+            TransactionType(
+                id=1,
+                type="입금"
+            ),
+            TransactionType(
+                id=2,
+                type="출금"
+            )
+        ])
+
         self.token1 = jwt.encode({'id': User.objects.get(id=1).id}, SECRET_KEY, ALGORITHM)
         self.token2 = jwt.encode({'id': User.objects.get(id=2).id}, SECRET_KEY, ALGORITHM)
 
@@ -141,6 +153,7 @@ class DepositViewTest(TestCase):
             "account_id": 1,
             "password": "8647",
             "amount": 5000,
+            "user_id": 1
         }
         response = client.post('/account/deposit', json.dumps(body), content_type='application/json', **headers)
         print("현재 금액 : ",Account.objects.get(id=body['account_id']).balance)
@@ -154,6 +167,21 @@ class DepositViewTest(TestCase):
             "account_id": 2,
             "password": "8647",
             "amount": 5000,
+            "user_id": 1
+        }
+        response = client.post('/account/deposit', json.dumps(body), content_type='application/json', **headers)
+        print("현재 금액 : ", Account.objects.get(id=body['account_id']).balance)
+        self.assertEqual(response.status_code, 404)
+
+    def test_deposit_post_not_match_user_id(self):
+        client = Client()
+        headers = {'HTTP_Authorization': self.token1}
+        body = {
+            "name": "강대훈",
+            "account_id": 1,
+            "password": "8647",
+            "amount": 5000,
+            "user_id": 2
         }
         response = client.post('/account/deposit', json.dumps(body), content_type='application/json', **headers)
         print("현재 금액 : ", Account.objects.get(id=body['account_id']).balance)
@@ -167,6 +195,7 @@ class DepositViewTest(TestCase):
             "account_id": 1,
             "password": "8646",
             "amount": 0,
+            "user_id": 1
         }
         response = client.post('/account/deposit', json.dumps(body), content_type='application/json', **headers)
         print("현재 금액 : ", Account.objects.get(id=body['account_id']).balance)
@@ -214,6 +243,17 @@ class WithdrawViewTest(TestCase):
             ),
         ]
         )
+
+        TransactionType.objects.bulk_create([
+            TransactionType(
+                id=1,
+                type="입금"
+            ),
+            TransactionType(
+                id=2,
+                type="출금"
+            )
+        ])
         self.token1 = jwt.encode({'id': User.objects.get(id=1).id}, SECRET_KEY, ALGORITHM)
         self.token2 = jwt.encode({'id': User.objects.get(id=2).id}, SECRET_KEY, ALGORITHM)
 
@@ -225,6 +265,7 @@ class WithdrawViewTest(TestCase):
             "account_id": 1,
             "password": "8647",
             "amount": 5000,
+            "user_id": 1
         }
         response = client.post('/account/withdraw', json.dumps(body), content_type='application/json', **headers)
         print("현재 금액 : ", Account.objects.get(id=body['account_id']).balance)
@@ -238,6 +279,21 @@ class WithdrawViewTest(TestCase):
             "account_id": 2,
             "password": "8647",
             "amount": 5000,
+            "user_id": 1
+        }
+        response = client.post('/account/withdraw', json.dumps(body), content_type='application/json', **headers)
+        print("현재 금액 : ", Account.objects.get(id=body['account_id']).balance)
+        self.assertEqual(response.status_code, 404)
+
+    def test_withdraw_post_not_match_user_id(self):
+        client = Client()
+        headers = {'HTTP_Authorization': self.token1}
+        body = {
+            "name": "강대훈",
+            "account_id": 1,
+            "password": "8647",
+            "amount": 5000,
+            "user_id": 2
         }
         response = client.post('/account/withdraw', json.dumps(body), content_type='application/json', **headers)
         print("현재 금액 : ", Account.objects.get(id=body['account_id']).balance)
@@ -252,11 +308,11 @@ class WithdrawViewTest(TestCase):
             "account_id": 1,
             "password": "8646",
             "amount": 1500000,
+            "user_id": 1
         }
         response = client.post('/account/withdraw', json.dumps(body), content_type='application/json', **headers)
         print("현재 금액 : ", Account.objects.get(id=body['account_id']).balance)
         self.assertEqual(response.status_code, 404)
-
 
     def tearDown(self):
         User.objects.all().delete()
