@@ -8,7 +8,11 @@
 | 이무현 | https://github.com/PeterLEEEEEE |
 
 
+
 ## 과제  안내
+
+### 배포 주소  
+http://3.144.122.195:8000/  
 
 ### Documentation API  
 https://documenter.getpostman.com/view/16891318/UVC8CRFW  
