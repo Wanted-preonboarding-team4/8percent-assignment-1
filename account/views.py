@@ -29,7 +29,7 @@ class TransationView(View):
         sorting                   = check_sorting(search_by_ordering)
         transaction_type          = check_transaction_type(search_by_tansaction_type)
         if transaction_type == 0:
-            return JsonResponse({"Message": "Invalid Transaction Format"})
+            return JsonResponse({"Message": "Invalid Transaction Format"}, status=404)
         
         q_filter                  = arrange_filter(start_date, end_date, transaction_type)
         

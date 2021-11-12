@@ -13,7 +13,7 @@
 ### API 목록
 
 
-- 거내역 조회 API
+- 거래내역 조회 API
 - 입금 API
 - 출금 API
 
@@ -183,6 +183,91 @@ Tool : <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&log
 }
 ```
 
+### 거래내역 조회 API
+
+
+| **이름**       | **data type**  | **endpoint**                          | **처리**|
+|:----------|--------|----------------------------|------------------------|
+| page    | string | account/transactions/<account_id>?page | pagenation을 통한 구현, 1페이지 당 5개 내역씩 반환|
+| startPeriod | string | <account_id>?startPeriod=2021-11-12   | 조회 시작 기간을 지정, 미입력 시 조회 당일 0시 0분으로 지정 | 
+|endPeriod| string | <account_id>?endPeriod=2021-11-12 | 조회 끝 기간을 지정, 미입력 시 현재 시간(시, 분, 초 동일)으로 지정|
+|order-by | string | <account_id>?order-by=latest | 최근 거래 내역, 과거 거래 내역 순서 지정, 미입력 시 옛날 거래부터, latest 입력 시 최근 순으로 조회 가능 |
+| transaction_type | int | <account_id>?transaction_type=1 | 조회 내용을 지정, 1 = 입금, 2 = 출금, all = 전체 내역 조회 |
+
+- endpoint 예시: `BASE_DIR/account/transactions/1?startPeriod=2021-11-12&endPeriod=2021-11-13&order-by=latest&transaction_type=3`
+
+<br>
+
+- ``` 거래내역 조회 성공 시 ``` : status 200
+```
+# 예시: account/transactions/1?startPeriod=2021-11-12&endPeriod=2021-11-13&order-by=latest&transaction_type=all
+{
+    "Result": [
+        {
+            "transaction_date": "2021.11.12 16:45:36", // 거래 일시
+            "amount": 2000,             // 거래금
+            "balance": 5000,            // 잔액
+            "transaction_type": "출금", // 거래 종류
+            "description": null,        // 적요
+            "transaction_counterparty": "55569****" // 계좌번호 마스킹
+        },
+        {
+            "transaction_date": "2021.11.12 16:45:21",
+            "amount": 2000,
+            "balance": 7000,
+            "transaction_type": "출금",
+            "description": null,
+            "transaction_counterparty": "55569****"
+        },
+        {
+            "transaction_date": "2021.11.12 16:45:04",
+            "amount": 2000,
+            "balance": 9000,
+            "transaction_type": "출금",
+            "description": null,
+            "transaction_counterparty": "55569****"
+        },
+        {
+            "transaction_date": "2021.11.12 16:38:36",
+            "amount": 2000,
+            "balance": 11000,
+            "transaction_type": "입금",
+            "description": null,
+            "transaction_counterparty": "55569****" 
+        },
+        {
+            "transaction_date": "2021.11.12 16:38:36",
+            "amount": 2000,
+            "balance": 9000,
+            "transaction_type": "입금",
+            "description": null,
+            "transaction_counterparty": "55569****"
+        }
+    ]
+}
+```
+
+- ```내 계좌가 아닐 시``` : status 403,
+``` 
+{
+  "Message": "Not Authorized"
+}
+```
+
+- ```계좌가 없을 시(account_id가 존재하지 않을 시)``` : status 404,
+``` 
+{
+  "Message": "Account Does Not Exist"
+}
+```
+
+- ```입출금 필터링 규칙에 어긋날 시(1, 2, all인 경우 외)``` : status 404,
+``` 
+{
+  "Message": "Invalid Transaction Format"
+}
+
+```
 
 # Reference
 이 프로젝트는 원티드x위코드 백엔드 프리온보딩 과제 일환으로 8퍼센트에서 출제한 과제를 기반으로 만들었습니다.
