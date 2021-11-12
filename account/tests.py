@@ -410,14 +410,14 @@ class TransactionViewTest(TestCase):
     
     def test_transaction_list_get_success(self):
         client = Client()
-        header = {"Authorization" : self.token1}
-        token   = header["Authorization"] 
-        payload = jwt.decode(token, SECRET_KEY, algorithms = ALGORITHM)
-        user    = User.objects.get(id = payload['id'])
+        headers = {"HTTP_Authorization" : self.token1}
+        # token   = header["Authorization"] 
+        # payload = jwt.decode(token, SECRET_KEY, algorithms = ALGORITHM)
+        # user    = User.objects.get(id = payload['id'])
 
         response = client.get(
-            '/account/transactions/1?startPeriod=2020-11-12&endPeriod=2020-11-12&order-by=&transaction_type=2',
-        **header, content_type='application/json')
+            '/account/transactions/1?startPeriod=2021-11-12&endPeriod=2021-11-14&transaction_type=all',
+        **headers)
         
         written1 = Transaction.objects.get(id=1).created_at.strftime(r"%Y.%m.%d %H:%M:%S")
         written2 = Transaction.objects.get(id=2).created_at.strftime(r"%Y.%m.%d %H:%M:%S")
