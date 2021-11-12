@@ -12,9 +12,9 @@ from env import SECRET_KEY, ALGORITHM
 class SignUpView(View):
     def post(self, request):
         try:
-            data = json.loads(request.body)
-            name = data['name']
-            email = data['email']
+            data     = json.loads(request.body)
+            name     = data['name']
+            email    = data['email']
             password = data['password']
 
             if not re.match('^[a-zA-Z가-힣]{2,30}$', name):
@@ -32,9 +32,9 @@ class SignUpView(View):
             decoded_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
             User.objects.create(
-                name=name,
-                email=email,
-                password=decoded_password,
+                name     = name,
+                email    = email,
+                password = decoded_password,
             )
 
             return JsonResponse({'MESSAGE': 'SUCCESSFULLY REGISTERED'}, status=201)
@@ -62,8 +62,8 @@ class LoginView(View):
             token = jwt.encode({"id": current_user.id}, SECRET_KEY, algorithm=ALGORITHM)
 
             return JsonResponse({
-                "MESSAGE": "SUCCESS",
-                "user_name": current_user.name,
+                "MESSAGE"   : "SUCCESS",
+                "user_name" : current_user.name,
                 "auth_token": token,
             }, status=200)
 

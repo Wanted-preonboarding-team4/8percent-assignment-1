@@ -132,13 +132,10 @@ Tool : <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&log
 - `./manage.py`
 - `./requirements.txt`
 
-## Endpoint  
-![image](https://user-images.githubusercontent.com/78228444/140987466-18431ef6-5278-4cb6-a598-dfd439d9fd3d.png)
-
-
 ## 구현기능  
 
-### 계좌 생성
+### 계좌 생성 API
+**endpoint** : `/account`
 - ```계좌생성 성공시``` : status_code : 200
 
 ```
@@ -161,6 +158,8 @@ Tool : <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&log
 ``` 
 
 ### 입금 API
+**endpoint** : `/account/deposit`
+
 - ```입금 성공시``` : status 200,
 ```
 - JSON
@@ -194,6 +193,7 @@ Tool : <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&log
 ```
 
 ### 출금 API
+**endpoint** : `/account/withdraw`
 - ```출금 성공시``` : status 200,
 ``` 
 - JSON
