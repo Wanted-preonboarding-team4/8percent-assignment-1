@@ -2,7 +2,7 @@ from datetime import date, datetime, timedelta
 
 from django.http.response import JsonResponse
 
-def check_filer(start, end, ordering, trans_type):
+def check_filter(start, end, ordering, trans_type):
     if not start:
             start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     elif not end:
