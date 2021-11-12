@@ -10,6 +10,9 @@
 
 ## 과제  안내
 
+### Documentation API  
+https://documenter.getpostman.com/view/16891318/UVC8CRFW  
+
 ### API 목록
 
 
@@ -152,34 +155,80 @@ Tool : <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&log
 - JSON
 {
     "MESSAGE":"숫자 4자리를 입력해주세요.",
-    "MESSAGE": "KEY_ERROR"
-    
+    "MESSAGE": "KEY_ERROR"   
 }
 
 ``` 
 
 ### 입금 API
-- ```입금 성공시``` : status 201,
+- ```입금 성공시``` : status 200,
 ```
+- JSON
 {
+    'message': '입금 성공'
 }
 ``` 
 
-- ```입금 실패시``` : status 404, 
+- ```일치하는 계좌가 없을 때``` : status 404, 
 ``` 
+- JSON
 {
+    'message': '일치하는 계좌가 없습니다.'
+}
+```
+
+- ```본인의 계좌가 아닐 때``` : status 404, 
+``` 
+- JSON
+{
+    'message': '본인의 계좌가 아닙니다.'
+}
+```
+
+- ```패스워드가 틀렸을 때``` : status 404, 
+``` 
+- JSON
+{
+    'message': '비밀번호가 틀렸습니다.'
 }
 ```
 
 ### 출금 API
-- ```출금 성공시``` : status 201,
+- ```출금 성공시``` : status 200,
 ``` 
+- JSON
 {
+    'message': '출금 성공'
 }
 ```
-- ```출금 실패시``` : status 404,
+- ```일치하는 계좌가 없을 때``` : status 404, 
 ``` 
+- JSON
 {
+    'message': '일치하는 계좌가 없습니다.'
+}
+```
+
+- ```본인의 계좌가 아닐 때``` : status 404, 
+``` 
+- JSON
+{
+    'message': '본인의 계좌가 아닙니다.'
+}
+```
+
+- ```패스워드가 틀렸을 때``` : status 404, 
+``` 
+- JSON
+{
+    'message': '비밀번호가 틀렸습니다.'
+}
+```
+- ```출금액이 부족할 때``` : status 404, 
+``` 
+- JSON
+{
+    'message': '금액이 부족합니다.'
 }
 ```
 
