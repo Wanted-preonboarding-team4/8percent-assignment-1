@@ -24,3 +24,11 @@ def check_filter(start, end, ordering, trans_type):
         return JsonResponse({"Message: Wrong Ordering Transaction Type Format"}, status=404)
     
     return start, end, ordering, trans_type
+
+
+# start_date, end_date, search_by_ordering, search_by_tansaction_type = check_filter(
+        #     start_date, 
+        #     end_date, 
+        #     search_by_ordering, 
+        #     search_by_tansaction_type
+        # )
