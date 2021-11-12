@@ -114,10 +114,22 @@ class DepositView(View):
             if not account:
                 return JsonResponse({'message': '일치하는 계좌가 없습니다.'}, status=404)
 
+            if account.user_id != data['user_id']:
+                return JsonResponse({'message': '본인의 계좌가 아닙니다.'}, status=404)
+
             if not bcrypt.checkpw(data['password'].encode('utf-8'), account.password.encode('utf-8')):
                 return JsonResponse({'message': '비밀번호가 틀렸습니다.'}, status=404)
 
             Account.objects.filter(id=data['account_id']).update(balance=account.balance + int(data['amount']))
+            Transaction.objects.create(
+                amount=data['amount'],
+                balance=account.balance + int(data['amount']),
+                account_id=data['account_id'],
+                user_id=data['user_id'],
+                transaction_type_id=1
+            )
+            t = Transaction.objects.get(account=data['account_id'])
+            print(t.transaction_type_id, t.balance)
             return JsonResponse({'message': '입금 성공'}, status=200)
 
         except KeyError:
@@ -134,6 +146,9 @@ class WithdrawView(View):
             if not account:
                 return JsonResponse({'message': '일치하는 계좌가 없습니다.'}, status=404)
 
+            if account.user_id != data['user_id']:
+                return JsonResponse({'message': '본인의 계좌가 아닙니다.'}, status=404)
+
             if not bcrypt.checkpw(data['password'].encode('utf-8'), account.password.encode('utf-8')):
                 return JsonResponse({'message': '비밀번호가 틀렸습니다.'}, status=404)
 
@@ -141,6 +156,16 @@ class WithdrawView(View):
                 return JsonResponse({'message': '금액이 부족합니다.'}, status=404)
 
             Account.objects.filter(id=data['account_id']).update(balance=account.balance - int(data['amount']))
+            Transaction.objects.create(
+                amount=data['amount'],
+                balance=account.balance - int(data['amount']),
+                account_id=data['account_id'],
+                user_id=data['user_id'],
+                transaction_type_id=2
+            )
+
+            t = Transaction.objects.get(account=data['account_id'])
+            print(t.transaction_type_id, t.balance)
             return JsonResponse({'message': '입금 성공'}, status=200)
 
         except KeyError:
