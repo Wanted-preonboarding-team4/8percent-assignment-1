@@ -21,49 +21,41 @@ class TransationView(View):
     def get(self, request, account_id):
         user_id = request.user.id
         page = request.GET.get('page', 1)
-        start_date  = request.GET.get('startPeriod', '')
-        end_date  = request.GET.get('endPeriod', '')
-        search_by_ordering = request.GET.get('order-by', '')
+        start_date                = request.GET.get('startPeriod', '')
+        end_date                  = request.GET.get('endPeriod', '')
+        search_by_ordering        = request.GET.get('order-by', '')
         search_by_tansaction_type = request.GET.get('transaction_type', '')
         
-
-        start_date, end_date, search_by_ordering, search_by_tansaction_type = check_filter(
-            start_date, 
-            end_date, 
-            search_by_ordering, 
-            search_by_tansaction_type
-        )
+        if search_by_ordering == 'latest':
+            sorting = '-created_at'
+        else:
+            sorting = 'created_at'
         
+        q = Q()
+
+        q &= Q(account_id = account_id)
+        q &= Q(created_at__range=(start_date, end_date))
+        q &= Q(transaction_type_id = search_by_tansaction_type)
+
         if not Account.objects.filter(id = account_id).exists():
             return JsonResponse({"Message": "Account Does Not Exist"}, status=404)
         
-        account = Account.objects.filter(id = account_id)
+        account = Account.objects.get(id = account_id)
 
         if account.user_id != user_id:
             return JsonResponse({"Message": "Not Authorized"}, status=403)
 
-        transactions = Transaction.select_related('user', 'account', 'transactiontype').filter(
-            account_id = account_id,
-            created_at__range=(start_date, end_date),
-            transaction_type_id = search_by_tansaction_type
-        ).order_by(search_by_ordering)
-
-        paginator = Paginator.page(transactions, 5)
+        transactions = Transaction.objects.select_related('user', 'account', 'transaction_type').filter(q).order_by(sorting)
         
-        try:
-            transaction_list = paginator.page(page)
-        except PageNotAnInteger:
-            transaction_list = paginator.page(1)
-        except EmptyPage:
-            transaction_list = paginator.page(paginator.num_pages)
+        transaction_list = Paginator(transactions, 3).get_page(page)
         
         result = [{
-            "transaction_date": transaction.created_at.strftime(r"%Y.%m.%d.%m.%s"),
-            "amount": transaction.ammount,
+            "transaction_date": transaction.created_at.strftime(r"%Y.%m.%d %H:%M:%S"),
+            "amount": transaction.amount,
             "balance": transaction.balance,
             "transaction_type": transaction.transaction_type.type,
             "description": transaction.description,
-            "transaction_counterparty": transaction.account.account_number[:5] + (transaction.account.account_number[5:]) * '*' 
+            "transaction_counterparty": transaction.account.account_number[:5] + len(transaction.account.account_number[5:]) * '*' 
         }for transaction in transaction_list]
 
         return JsonResponse({"Result": result}, status=200)
@@ -128,8 +120,7 @@ class DepositView(View):
                 user_id=data['user_id'],
                 transaction_type_id=1
             )
-            t = Transaction.objects.get(account=data['account_id'])
-            print(t.transaction_type_id, t.balance)
+            
             return JsonResponse({'message': '입금 성공'}, status=200)
 
         except KeyError:
@@ -164,9 +155,7 @@ class WithdrawView(View):
                 transaction_type_id=2
             )
 
-            t = Transaction.objects.get(account=data['account_id'])
-            print(t.transaction_type_id, t.balance)
-            return JsonResponse({'message': '입금 성공'}, status=200)
+            return JsonResponse({'message': '출금 성공'}, status=200)
 
         except KeyError:
             return JsonResponse({'message':'KEY_ERROR'},status=400)
