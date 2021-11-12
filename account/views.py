@@ -1,19 +1,18 @@
 import json, bcrypt, random, re
-from datetime              import date, datetime, timedelta
 
-from django.core           import paginator
 from django.http           import JsonResponse
-from django.shortcuts      import render
 from django.views          import View
 from django.db             import transaction
-from django.db.models      import Q
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-
+from django.core.paginator import Paginator
 
 from users.utils           import login_decorator
-from account.filtering     import check_filter
-from users.models          import User
-from account.models        import Account, Transaction, TransactionType
+from account.models        import Account, Transaction
+from account.filtering     import (
+    check_date_range, 
+    check_sorting, 
+    check_transaction_type, 
+    arrange_filter
+)
 
 
 class TransationView(View):
@@ -23,20 +22,14 @@ class TransationView(View):
         page = request.GET.get('page', 1)
         start_date                = request.GET.get('startPeriod', '')
         end_date                  = request.GET.get('endPeriod', '')
-        search_by_ordering        = request.GET.get('order-by', '')
-        search_by_tansaction_type = request.GET.get('transaction_type', '')
+        search_by_ordering        = request.GET.get('order-by','')
+        search_by_tansaction_type = request.GET.get('transaction_type', 'all')
         
-        if search_by_ordering == 'latest':
-            sorting = '-created_at'
-        else:
-            sorting = 'created_at'
+        start_date, end_date      = check_date_range(start_date, end_date)
+        sorting                   = check_sorting(search_by_ordering)
+        transaction_type          = check_transaction_type(search_by_tansaction_type)
+        q_filter                  = arrange_filter(start_date, end_date, transaction_type)
         
-        q = Q()
-
-        q &= Q(account_id = account_id)
-        q &= Q(created_at__range=(start_date, end_date))
-        q &= Q(transaction_type_id = search_by_tansaction_type)
-
         if not Account.objects.filter(id = account_id).exists():
             return JsonResponse({"Message": "Account Does Not Exist"}, status=404)
         
@@ -45,9 +38,13 @@ class TransationView(View):
         if account.user_id != user_id:
             return JsonResponse({"Message": "Not Authorized"}, status=403)
 
-        transactions = Transaction.objects.select_related('user', 'account', 'transaction_type').filter(q).order_by(sorting)
+        transactions = Transaction.objects.select_related(
+            'user', 
+            'account', 
+            'transaction_type'
+        ).filter(q_filter).order_by(sorting)
         
-        transaction_list = Paginator(transactions, 3).get_page(page)
+        transaction_list = Paginator(transactions, 5).get_page(page)
         
         result = [{
             "transaction_date": transaction.created_at.strftime(r"%Y.%m.%d %H:%M:%S"),
