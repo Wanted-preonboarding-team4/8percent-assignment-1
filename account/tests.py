@@ -156,7 +156,7 @@ class DepositViewTest(TestCase):
             "user_id": 1
         }
         response = client.post('/account/deposit', json.dumps(body), content_type='application/json', **headers)
-        print("현재 금액 : ",Account.objects.get(id=body['account_id']).balance)
+        print("현재 금액 : ", Account.objects.get(id=body['account_id']).balance)
         self.assertEqual(response.status_code, 200)
 
     def test_deposit_post_not_match_account(self):
@@ -299,7 +299,6 @@ class WithdrawViewTest(TestCase):
         print("현재 금액 : ", Account.objects.get(id=body['account_id']).balance)
         self.assertEqual(response.status_code, 404)
 
-
     def test_withdraw_post_lack_of_money(self):
         client = Client()
         headers = {'HTTP_Authorization': self.token1}
@@ -317,6 +316,7 @@ class WithdrawViewTest(TestCase):
     def tearDown(self):
         User.objects.all().delete()
         Account.objects.all().delete()
+
 
 class TransactionViewTest(TestCase):
     def setUp(self):
@@ -371,83 +371,84 @@ class TransactionViewTest(TestCase):
             Transaction(
                 id=1,
                 amount=1000,
-                transaction_counterparty = '111111111',
-                created_at = datetime.now(),
-                description = '첫번째',
-                balance = 49000,
-                user_id = 1,
-                account_id = 1,
-                transaction_type_id = 2
+                transaction_counterparty='111111111',
+                created_at=datetime.now(),
+                description='첫번째',
+                balance=49000,
+                user_id=1,
+                account_id=1,
+                transaction_type_id=2
             ),
             Transaction(
                 id=2,
                 amount=1000,
-                transaction_counterparty = '111111111',
-                created_at = datetime.now(),
-                description = '두번째',
-                balance = 48000,
-                user_id = 1,
-                account_id = 1,
-                transaction_type_id = 2
+                transaction_counterparty='111111111',
+                created_at=datetime.now(),
+                description='두번째',
+                balance=48000,
+                user_id=1,
+                account_id=1,
+                transaction_type_id=2
             ),
             Transaction(
                 id=3,
                 amount=1000,
-                transaction_counterparty = '111111111',
-                created_at = datetime.now(),
-                description = '세번째',
-                balance = 47000,
-                user_id = 1,
-                account_id = 1,
-                transaction_type_id = 2
+                transaction_counterparty='111111111',
+                created_at=datetime.now(),
+                description='세번째',
+                balance=47000,
+                user_id=1,
+                account_id=1,
+                transaction_type_id=2
             )
         ])
+
     def tearDown(self):
         User.objects.all().delete()
         Account.objects.all().delete()
         TransactionType.objects.all().delete()
         Transaction.objects.all().delete()
-    
+
     def test_transaction_list_get_success(self):
         client = Client()
-        headers = {"HTTP_Authorization" : self.token1}
+        headers = {"HTTP_Authorization": self.token1}
         # token   = header["Authorization"] 
         # payload = jwt.decode(token, SECRET_KEY, algorithms = ALGORITHM)
         # user    = User.objects.get(id = payload['id'])
 
         response = client.get(
             '/account/transactions/1?startPeriod=2021-11-12&endPeriod=2021-11-14&transaction_type=all',
-        **headers)
-        
+            **headers)
+
         written1 = Transaction.objects.get(id=1).created_at.strftime(r"%Y.%m.%d %H:%M:%S")
         written2 = Transaction.objects.get(id=2).created_at.strftime(r"%Y.%m.%d %H:%M:%S")
         written3 = Transaction.objects.get(id=3).created_at.strftime(r"%Y.%m.%d %H:%M:%S")
 
         test = {
-                "Result": [
-            {
-                "transaction_date": written1,
-                "amount": 1000,
-                "balance": 49000,
-                "transaction_type": "출금",
-                "description": '첫번째',
-                "transaction_counterparty": "11111****"
-            },
-            {
-                "transaction_date": written2,
-                "amount": 1000,
-                "balance": 48000,
-                "transaction_type": "출금",
-                "description": '두번째',
-                "transaction_counterparty": "11111****"
-            },
-            {
-                "transaction_date": written3,
-                "amount": 1000,
-                "balance": 47000,
-                "transaction_type": "출금",
-                "description": '세번째',
-                "transaction_counterparty": "11111****"
+            "Result": [
+                {
+                    "transaction_date": written1,
+                    "amount": 1000,
+                    "balance": 49000,
+                    "transaction_type": "출금",
+                    "description": '첫번째',
+                    "transaction_counterparty": "11111****"
+                },
+                {
+                    "transaction_date": written2,
+                    "amount": 1000,
+                    "balance": 48000,
+                    "transaction_type": "출금",
+                    "description": '두번째',
+                    "transaction_counterparty": "11111****"
+                },
+                {
+                    "transaction_date": written3,
+                    "amount": 1000,
+                    "balance": 47000,
+                    "transaction_type": "출금",
+                    "description": '세번째',
+                    "transaction_counterparty": "11111****"
                 },
             ]
         }

@@ -1,16 +1,16 @@
 import json, bcrypt, random, re
 
-from django.http           import JsonResponse
-from django.views          import View
-from django.db             import transaction
+from django.http import JsonResponse
+from django.views import View
+from django.db import transaction
 from django.core.paginator import Paginator
 
-from users.utils           import login_decorator
-from account.models        import Account, Transaction
-from account.filtering     import (
-    check_date_range, 
-    check_sorting, 
-    check_transaction_type, 
+from users.utils import login_decorator
+from account.models import Account, Transaction
+from account.filtering import (
+    check_date_range,
+    check_sorting,
+    check_transaction_type,
     arrange_filter
 )
 
@@ -20,46 +20,47 @@ class TransationView(View):
     def get(self, request, account_id):
         user_id = request.user.id
         page = request.GET.get('page', 1)
-        start_date                = request.GET.get('startPeriod', '')
-        end_date                  = request.GET.get('endPeriod', '')
-        search_by_ordering        = request.GET.get('order-by','')
+        start_date = request.GET.get('startPeriod', '')
+        end_date = request.GET.get('endPeriod', '')
+        search_by_ordering = request.GET.get('order-by', '')
         search_by_tansaction_type = request.GET.get('transaction_type', 'all')
- 
-        start_date, end_date      = check_date_range(start_date, end_date)
-        sorting                   = check_sorting(search_by_ordering)
-        transaction_type          = check_transaction_type(search_by_tansaction_type)
+
+        start_date, end_date = check_date_range(start_date, end_date)
+        sorting = check_sorting(search_by_ordering)
+        transaction_type = check_transaction_type(search_by_tansaction_type)
         if transaction_type == 0:
             return JsonResponse({"Message": "Invalid Transaction Format"})
-        
-        q_filter                  = arrange_filter(start_date, end_date, transaction_type)
-        
-        if not Account.objects.filter(id = account_id).exists():
+
+        q_filter = arrange_filter(start_date, end_date, transaction_type)
+
+        if not Account.objects.filter(id=account_id).exists():
             return JsonResponse({"Message": "Account Does Not Exist"}, status=404)
-        
-        account = Account.objects.get(id = account_id)
+
+        account = Account.objects.get(id=account_id)
 
         if account.user_id != user_id:
             return JsonResponse({"Message": "Not Authorized"}, status=403)
 
         transactions = Transaction.objects.select_related(
-            'user', 
-            'account', 
+            'user',
+            'account',
             'transaction_type'
         ).filter(q_filter).order_by(sorting)
-        
+
         transaction_list = Paginator(transactions, 5).get_page(page)
-        
+
         result = [{
             "transaction_date": transaction.created_at.strftime(r"%Y.%m.%d %H:%M:%S"),
             "amount": transaction.amount,
             "balance": transaction.balance,
             "transaction_type": transaction.transaction_type.type,
             "description": transaction.description,
-            "transaction_counterparty": transaction.account.account_number[:5] + len(transaction.account.account_number[5:]) * '*' 
-        }for transaction in transaction_list]
+            "transaction_counterparty": transaction.account.account_number[:5] + len(
+                transaction.account.account_number[5:]) * '*'
+        } for transaction in transaction_list]
 
         return JsonResponse({"Result": result}, status=200)
-        
+
 
 class AccountView(View):
     @login_decorator
@@ -93,7 +94,6 @@ class AccountView(View):
             return JsonResponse({"MESSAGE": "SUCCESS"}, status=201)
         except KeyError:
             return JsonResponse({"MESSAGE": "KEY_ERROR"}, status=400)
-        
 
 
 class DepositView(View):
@@ -120,11 +120,11 @@ class DepositView(View):
                 user_id=data['user_id'],
                 transaction_type_id=1
             )
-            
+
             return JsonResponse({'message': '입금 성공'}, status=200)
 
         except KeyError:
-            return JsonResponse({'message':'KEY_ERROR'},status=400)
+            return JsonResponse({'message': 'KEY_ERROR'}, status=400)
 
 
 class WithdrawView(View):
@@ -158,4 +158,4 @@ class WithdrawView(View):
             return JsonResponse({'message': '출금 성공'}, status=200)
 
         except KeyError:
-            return JsonResponse({'message':'KEY_ERROR'},status=400)
+            return JsonResponse({'message': 'KEY_ERROR'}, status=400)
