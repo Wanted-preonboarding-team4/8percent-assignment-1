@@ -1,7 +1,7 @@
 import json, jwt
-
+from datetime import datetime
 import bcrypt
-from django.test import TestCase, Client, client
+from django.test import TestCase, Client
 
 from users.models import User
 from account.models import Account, Transaction, TransactionType
@@ -317,3 +317,140 @@ class WithdrawViewTest(TestCase):
     def tearDown(self):
         User.objects.all().delete()
         Account.objects.all().delete()
+
+class TransactionViewTest(TestCase):
+    def setUp(self):
+        User.objects.bulk_create([
+            User(
+                id=1,
+                name="dog",
+                email="dog@gmail.com",
+                password="doggg12345!",
+            ),
+            User(
+                id=2,
+                name="cat",
+                email="cat@naver.com",
+                password="cattt12345!",
+            )
+        ])
+        self.token1 = jwt.encode({'id': User.objects.get(id=1).id}, SECRET_KEY, ALGORITHM)
+        self.token2 = jwt.encode({'id': User.objects.get(id=2).id}, SECRET_KEY, ALGORITHM)
+
+        Account.objects.bulk_create([
+            Account(
+                id=1,
+                name="dog",
+                password=1111,
+                account_number='111111111',
+                balance=50000,
+                user_id=1
+            ),
+            Account(
+                id=2,
+                name="cat",
+                password=2222,
+                account_number='222222222',
+                balance=50000,
+                user_id=2
+            )
+        ])
+
+        TransactionType.objects.bulk_create([
+            TransactionType(
+                id=1,
+                type="입금"
+            ),
+            TransactionType(
+                id=2,
+                type="출금"
+            )
+        ])
+
+        Transaction.objects.bulk_create([
+            Transaction(
+                id=1,
+                amount=1000,
+                transaction_counterparty = '111111111',
+                created_at = datetime.now(),
+                description = '첫번째',
+                balance = 49000,
+                user_id = 1,
+                account_id = 1,
+                transaction_type_id = 2
+            ),
+            Transaction(
+                id=2,
+                amount=1000,
+                transaction_counterparty = '111111111',
+                created_at = datetime.now(),
+                description = '두번째',
+                balance = 48000,
+                user_id = 1,
+                account_id = 1,
+                transaction_type_id = 2
+            ),
+            Transaction(
+                id=3,
+                amount=1000,
+                transaction_counterparty = '111111111',
+                created_at = datetime.now(),
+                description = '세번째',
+                balance = 47000,
+                user_id = 1,
+                account_id = 1,
+                transaction_type_id = 2
+            )
+        ])
+    def tearDown(self):
+        User.objects.all().delete()
+        Account.objects.all().delete()
+        TransactionType.objects.all().delete()
+        Transaction.objects.all().delete()
+    
+    def test_transaction_list_get_success(self):
+        client = Client()
+        header = {"Authorization" : self.token1}
+        token   = header["Authorization"] 
+        payload = jwt.decode(token, SECRET_KEY, algorithms = ALGORITHM)
+        user    = User.objects.get(id = payload['id'])
+
+        response = client.get(
+            '/account/transactions/1?startPeriod=2020-11-12&endPeriod=2020-11-12&order-by=&transaction_type=2',
+        **header, content_type='application/json')
+        
+        written1 = Transaction.objects.get(id=1).created_at.strftime(r"%Y.%m.%d %H:%M:%S")
+        written2 = Transaction.objects.get(id=2).created_at.strftime(r"%Y.%m.%d %H:%M:%S")
+        written3 = Transaction.objects.get(id=3).created_at.strftime(r"%Y.%m.%d %H:%M:%S")
+
+        test = {
+                "Result": [
+            {
+                "transaction_date": written1,
+                "amount": 1000,
+                "balance": 49000,
+                "transaction_type": "출금",
+                "description": '첫번째',
+                "transaction_counterparty": "11111****"
+            },
+            {
+                "transaction_date": written2,
+                "amount": 1000,
+                "balance": 48000,
+                "transaction_type": "출금",
+                "description": '두번째',
+                "transaction_counterparty": "11111****"
+            },
+            {
+                "transaction_date": written3,
+                "amount": 1000,
+                "balance": 47000,
+                "transaction_type": "출금",
+                "description": '세번째',
+                "transaction_counterparty": "11111****"
+                },
+            ]
+        }
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), test)
